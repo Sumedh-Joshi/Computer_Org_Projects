@@ -7,6 +7,9 @@
 	invalid: .asciiz "Invalid choice!\n"
 	goodbye: .asciiz "Goodbye!\n"
 	
+	min_print: .asciiz "The lowest element is: \n"
+	max_print: .asciiz "The largest element is: \n"
+	
 	.align 2
 	array:    .space 400        # (stores up to 100 floats) I will be usnig space only for 15 inputs considering all floats 
 	count:    .word 0	
@@ -72,8 +75,8 @@ menu_:
 
 	beq $t3, 1, sort	 
     #	beq $t3,2,average
-    #	beq $t3,3,Min
-    #	beq $t3,4,Max
+    	beq $t3,3,Min
+    	beq $t3,4,Max
     #	beq $t3,5,sum
     #	beq $t3,6,printIndex
     	beq $t3, 7, print
@@ -153,7 +156,81 @@ sortDone:
 	
 #================================================================= AVG
 #================================================================= MIN
+Min:
+	la $t0, array		# $t0  base address of array
+	lw $t1, count		# $t1  size of array
+	
+	l.s  $f20, 0($t0)	# Load the first element as the first min value to compare with
+	
+	li   $t2, 1		# i  counter
+	addi $t0, $t0, 4	# $t0 + 4 is pointing to 2nd element
+
+min_loop:
+	bge  $t2, $t1, end_min_loop	# while (i < size), if (i >= size), exit 
+	
+	l.s  $f2, 0($t0)	# Load the current element
+	
+	c.le.s $f20, $f2	# Compare if current >= min	
+	
+	bc1t   dont_update_min	# If the comparison was true (min <= current), dont update min value
+	
+	mov.s $f20, $f2		# min = current only if min > current (i.e bclt fails)
+	
+dont_update_min:
+	addi $t2, $t2, 1	# increment counter (i)
+	addi $t0, $t0, 4	# increment pointer 
+	
+	j    min_loop
+
+end_min_loop:
+	li   $v0, 4
+	la   $a0, min_print
+	syscall              # Print actual statement
+	
+	mov.s $f12, $f20     # Move in f12 to print
+	li   $v0, 2
+	syscall           
+	
+	j    menu_
 #================================================================= MAX
+Max:
+	la $t0, array		# $t0  base address of array
+	lw $t1, count		# $t1  size of array
+	
+	
+	l.s  $f20, 0($t0)	# Load the first element as the first max to compare with 
+	
+	li   $t2, 1		# i counter
+	addi $t0, $t0, 4	# $t0 + 4 is pointing to 2nd element
+
+max_loop:
+	bge  $t2, $t1, end_max_loop	# while (i < size), if (i >= size), exit 
+	
+	l.s  $f2, 0($t0)	# Load the current element
+	
+	c.le.s $f2, $f20	# Compare if current <= max
+	
+	bc1t   dont_update_max		# If the comparison was true (current <= max), odnt update max value
+	
+	mov.s $f20, $f2		# max = current only if current > max (i.e bclt fails)
+	
+dont_update_max:
+	addi $t2, $t2, 1	# increment counter (i)
+	addi $t0, $t0, 4	# increment counter
+	
+	j    max_loop
+
+end_max_loop:
+	# Print the result
+	li   $v0, 4
+	la   $a0, max_print
+	syscall              # Print actual statement
+	
+	mov.s $f12, $f20     # Move in f12 to print
+	li   $v0, 2
+	syscall
+	
+	j    menu_
 #================================================================= SUM
 #================================================================= 1_INDEX
 
