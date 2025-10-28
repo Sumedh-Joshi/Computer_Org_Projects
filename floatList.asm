@@ -9,6 +9,7 @@
 	
 	min_print: .asciiz "The lowest element is: \n"
 	max_print: .asciiz "The largest element is: \n"
+	sum_print: .asciiz "The sum of all elements is: \n"
 	
 	.align 2
 	array:    .space 400        # (stores up to 100 floats) I will be usnig space only for 15 inputs considering all floats 
@@ -74,10 +75,10 @@ menu_:
 # Arranging according to menu
 
 	beq $t3, 1, sort	 
-    #	beq $t3,2,average
+    	beq $t3,2,avg
     	beq $t3,3,Min
     	beq $t3,4,Max
-    #	beq $t3,5,sum
+    	beq $t3,5,sum
     #	beq $t3,6,printIndex
     	beq $t3, 7, print
 	beq $t3, 8, exit
@@ -155,6 +156,29 @@ sortDone:
 	j print
 	
 #================================================================= AVG
+avg:
+	la $t0, array		# $t0 base address of array
+	lw $t1, count		# $t1  size of array
+	li $t2, 0		# counter
+	
+	li $f20,0.0	# Load 0 into $f20, will be adding all elements to f20  ####====
+	
+avg_loop:
+	bge  $t2, $t1, end_avg_loop	# while (i < size)
+	
+	l.s  $f2, 0($t0)	 # Load the current element
+	
+	add.s $f20, $f20, $f2	# sum = sum + current
+	
+	addi $t2, $t2, 1	# increment counter
+	addi $t0, $t0, 4	# increment pointer
+	
+	j    avg_loop
+	
+end_sum_loop:
+# problem count is int addition is float how to / ??
+	
+	j    menu_
 #================================================================= MIN
 Min:
 	la $t0, array		# $t0  base address of array
@@ -216,7 +240,7 @@ max_loop:
 	
 dont_update_max:
 	addi $t2, $t2, 1	# increment counter (i)
-	addi $t0, $t0, 4	# increment counter
+	addi $t0, $t0, 4	# increment pointer
 	
 	j    max_loop
 
@@ -232,6 +256,35 @@ end_max_loop:
 	
 	j    menu_
 #================================================================= SUM
+sum:
+	la $t0, array		# $t0 base address of array
+	lw $t1, count		# $t1  size of array
+	li $t2, 0		# counter
+	
+	li $f20,0	# Load 0 into $f20, will be adding all elements to f20   ####====
+	
+sum_loop:
+	bge  $t2, $t1, end_sum_loop	# while (i < size)
+	
+	l.s  $f2, 0($t0)	 # Load the current element
+	
+	add.s $f20, $f20, $f2	# sum = sum + current
+	
+	addi $t2, $t2, 1	# increment counter
+	addi $t0, $t0, 4	# increment pointer
+	
+	j    sum_loop
+
+end_sum_loop:		  ####====
+	li $v0, 4
+	la $a0, sum_print
+	syscall              # Print actual statement
+	
+	mov.s $f12, $f20   
+	li   $v0, 2
+	syscall              # Print sum value
+	
+	j    menu_
 #================================================================= 1_INDEX
 
 #================================================================= EXIT
